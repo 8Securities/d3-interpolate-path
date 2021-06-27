@@ -9,10 +9,14 @@
  *   right is the segment from t..1.
  */
 function decasteljau(points, t) {
+  'worklet';
+
   const left = [];
   const right = [];
 
   function decasteljauRecurse(points, t) {
+    'worklet';
+
     if (points.length === 1) {
       left.push(points[0]);
       right.push(points[0]);
@@ -52,6 +56,8 @@ function decasteljau(points, t) {
  * @return {Object} A command object representing the segment.
  */
 function pointsToCommand(points) {
+  'worklet';
+
   const command = {};
 
   if (points.length === 4) {
@@ -86,6 +92,8 @@ function pointsToCommand(points) {
  * @return {Number[][][]} Array of segments
  */
 function splitCurveAsPoints(points, segmentCount) {
+  'worklet';
+
   segmentCount = segmentCount || 2;
 
   const segments = [];
@@ -131,6 +139,8 @@ function splitCurveAsPoints(points, segmentCount) {
  * @return {Object[]} An array of commands representing the segments in sequence
  */
 export default function splitCurve(commandStart, commandEnd, segmentCount) {
+  'worklet';
+
   const points = [[commandStart.x, commandStart.y]];
   if (commandEnd.x1 != null) {
     points.push([commandEnd.x1, commandEnd.y1]);

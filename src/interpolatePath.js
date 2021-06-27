@@ -19,10 +19,12 @@ const typeMap = {
 
 // Add lower case entries too matching uppercase (e.g. 'm' == 'M')
 Object.keys(typeMap).forEach((key) => {
+  'worklet';
   typeMap[key.toLowerCase()] = typeMap[key];
 });
 
 function arrayOfLength(length, value) {
+  'worklet';
   const array = Array(length);
   for (let i = 0; i < length; i++) {
     array[i] = value;
@@ -37,8 +39,12 @@ function arrayOfLength(length, value) {
  * @return {String} The string for the `d` attribute
  */
 function commandToString(command) {
+  'worklet';
   return `${command.type}${typeMap[command.type]
-    .map((p) => command[p])
+    .map((p) => {
+      'worklet';
+      return command[p];
+    })
     .join(',')}`;
 }
 
@@ -63,6 +69,7 @@ function commandToString(command) {
  * @return {Object} aCommand converted to type of bCommand
  */
 function convertToSameType(aCommand, bCommand) {
+  'worklet';
   const conversionMap = {
     x1: 'x',
     y1: 'y',
@@ -76,6 +83,8 @@ function convertToSameType(aCommand, bCommand) {
   if (aCommand.type !== bCommand.type && bCommand.type.toUpperCase() !== 'M') {
     const aConverted = {};
     Object.keys(bCommand).forEach((bKey) => {
+      'worklet';
+
       const bValue = bCommand[bKey];
       // first read from the A command
       let aValue = aCommand[bKey];
@@ -121,6 +130,7 @@ function convertToSameType(aCommand, bCommand) {
  *   commandEnd. (Can be segmentCount+1 objects if commandStart is type M).
  */
 function splitSegment(commandStart, commandEnd, segmentCount) {
+  'worklet';
   let segments = [];
 
   // line, quadratic bezier, or cubic bezier
@@ -143,7 +153,10 @@ function splitSegment(commandStart, commandEnd, segmentCount) {
     }
 
     segments = segments.concat(
-      arrayOfLength(segmentCount - 1).map(() => copyCommand)
+      arrayOfLength(segmentCount - 1).map(() => {
+        'worklet';
+        return copyCommand;
+      }),
     );
     segments.push(commandEnd);
   }
@@ -162,6 +175,7 @@ function splitSegment(commandStart, commandEnd, segmentCount) {
  * @return {Object[]} The extended commandsToExtend array
  */
 function extend(commandsToExtend, referenceCommands, excludeSegment) {
+  'worklet';
   // compute insertion points:
   // number of segments in the path to extend
   const numSegmentsToExtend = commandsToExtend.length - 1;
@@ -178,6 +192,8 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
   // 0 = segment 0-1, 1 = segment 1-2, n-1 = last vertex
   const countPointsPerSegment = arrayOfLength(numReferenceSegments).reduce(
     (accum, d, i) => {
+      'worklet';
+
       let insertIndex = Math.floor(segmentRatio * i);
 
       // handle excluding segments
@@ -231,6 +247,7 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
 
   // extend each segment to have the correct number of points for a smooth interpolation
   const extended = countPointsPerSegment.reduce((extended, segmentCount, i) => {
+    'worklet';
     // if last command, just add `segmentCount` number of times
     if (i === commandsToExtend.length - 1) {
       const lastCommandCopies = arrayOfLength(
@@ -241,6 +258,8 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
       // convert M to L
       if (lastCommandCopies[0].type === 'M') {
         lastCommandCopies.forEach((d) => {
+          'worklet';
+
           d.type = 'L';
         });
       }
@@ -266,6 +285,7 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
  * @param {String|null} d A path `d` string
  */
 export function pathCommandsFromString(d) {
+  'worklet';
   // split into valid tokens
   const tokens = (d || '').match(commandTokenRegex) || [];
   const commands = [];
@@ -319,6 +339,7 @@ export function interpolatePathCommands(
   bCommandsInput,
   excludeSegment
 ) {
+  'worklet';
   // make a copy so we don't mess with the input arrays
   let aCommands = aCommandsInput == null ? [] : aCommandsInput.slice();
   let bCommands = bCommandsInput == null ? [] : bCommandsInput.slice();
@@ -326,6 +347,7 @@ export function interpolatePathCommands(
   // both input sets are empty, so we don't interpolate
   if (!aCommands.length && !bCommands.length) {
     return function nullInterpolator() {
+      'worklet';
       return [];
     };
   }
@@ -370,19 +392,18 @@ export function interpolatePathCommands(
 
   // commands have same length now.
   // convert commands in A to the same type as those in B
-  aCommands = aCommands.map((aCommand, i) =>
-    convertToSameType(aCommand, bCommands[i])
-  );
+  aCommands = aCommands.map((aCommand, i) => {
+    'worklet';
 
-  // create mutable interpolated command objects
-  const interpolatedCommands = aCommands.map((aCommand) => ({ ...aCommand }));
+    return convertToSameType(aCommand, bCommands[i]);
+  });
 
   if (addZ) {
-    interpolatedCommands.push({ type: 'Z' });
     aCommands.push({ type: 'Z' }); // required for when returning at t == 0
   }
 
   return function pathCommandInterpolator(t) {
+    'worklet';
     // at 1 return the final value without the extensions used during interpolation
     if (t === 1) {
       return bCommandsInput == null ? [] : bCommandsInput;
@@ -393,14 +414,20 @@ export function interpolatePathCommands(
       return aCommands;
     }
 
+    const interpolatedCommands = [];
+
     // interpolate the commands using the mutable interpolated command objs
-    for (let i = 0; i < interpolatedCommands.length; ++i) {
-      // if (interpolatedCommands[i].type === 'Z') continue;
+    for (let i = 0; i < aCommands.length; ++i) {
+      // if (aCommands[i].type === 'Z') continue;
 
       const aCommand = aCommands[i];
       const bCommand = bCommands[i];
-      const interpolatedCommand = interpolatedCommands[i];
-      for (const arg of typeMap[interpolatedCommand.type]) {
+      const interpolatedCommand = {
+        type: aCommand.type,
+      };
+
+      for (let j = 0; j < typeMap[interpolatedCommand.type].length; j++) {
+        const arg = typeMap[interpolatedCommand.type][j];
         interpolatedCommand[arg] = (1 - t) * aCommand[arg] + t * bCommand[arg];
 
         // do not use floats for flags (#27), round to integer
@@ -408,6 +435,8 @@ export function interpolatePathCommands(
           interpolatedCommand[arg] = Math.round(interpolatedCommand[arg]);
         }
       }
+
+      interpolatedCommands.push(interpolatedCommand);
     }
 
     return interpolatedCommands;
@@ -428,11 +457,13 @@ export function interpolatePathCommands(
  * @returns {Function} Interpolation function that maps t ([0, 1]) to a path `d` string.
  */
 export default function interpolatePath(a, b, excludeSegment) {
+  'worklet';
   let aCommands = pathCommandsFromString(a);
   let bCommands = pathCommandsFromString(b);
 
   if (!aCommands.length && !bCommands.length) {
     return function nullInterpolator() {
+      'worklet';
       return '';
     };
   }
@@ -440,10 +471,11 @@ export default function interpolatePath(a, b, excludeSegment) {
   const commandInterpolator = interpolatePathCommands(
     aCommands,
     bCommands,
-    excludeSegment
+    excludeSegment,
   );
 
   return function pathStringInterpolator(t) {
+    'worklet';
     // at 1 return the final value without the extensions used during interpolation
     if (t === 1) {
       return b == null ? '' : b;
@@ -453,8 +485,8 @@ export default function interpolatePath(a, b, excludeSegment) {
 
     // convert to a string (fastest concat: https://jsperf.com/join-concat/150)
     let interpolatedString = '';
-    for (const interpolatedCommand of interpolatedCommands) {
-      interpolatedString += commandToString(interpolatedCommand);
+    for (var i = 0; i < interpolatedCommands.length; i++) {
+      interpolatedString += commandToString(interpolatedCommands[i]);
     }
 
     return interpolatedString;
