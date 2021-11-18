@@ -267,7 +267,13 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
  */
 export function pathCommandsFromString(d) {
   // split into valid tokens
-  const tokens = (d || '').match(commandTokenRegex) || [];
+  const str = d || '';
+  const pattern = new RegExp(
+    /[MLCSTQAHVZmlcstqahv]|-?[\d.e+-]+/,
+    'g',
+  );
+  
+  const tokens = str.match(pattern) || [];
   const commands = [];
   let commandArgs;
   let command;
