@@ -33,6 +33,23 @@ function arrayOfLength(length, value) {
 }
 
 /**
+ * Custom reimplementation of Object.assign with worklet
+ * replaces the babel plugin 'transform-object-assign'
+ */
+function assignObject(target) {
+  'worklet';
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];
+    for (var key in source) {
+      if (source.hasOwnProperty(key)) {
+        target[key] = source[key];
+      }
+    }
+  }
+  return target;
+}
+
+/**
  * Converts a command object to a string to be used in a `d` attribute
  * @param {Object} command A command object
  * @return {String} The string for the `d` attribute
@@ -144,7 +161,10 @@ function splitSegment(commandStart, commandEnd, segmentCount) {
 
     // general case - just copy the same point
   } else {
-    const copyCommand = Object.assign({}, commandStart);
+    const copyCommand = () => {
+      'worklet';
+      assignObject({}, commandStart);
+    };
 
     // convert M to L
     if (copyCommand.type === 'M') {
@@ -155,7 +175,7 @@ function splitSegment(commandStart, commandEnd, segmentCount) {
       arrayOfLength(segmentCount - 1).map(() => {
         'worklet';
         return copyCommand;
-      }),
+      })
     );
     segments.push(commandEnd);
   }
@@ -251,7 +271,7 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
     if (i === commandsToExtend.length - 1) {
       const lastCommandCopies = arrayOfLength(
         segmentCount,
-        Object.assign({}, commandsToExtend[commandsToExtend.length - 1])
+        assignObject({}, commandsToExtend[commandsToExtend.length - 2])
       );
 
       // convert M to L
@@ -286,11 +306,8 @@ function extend(commandsToExtend, referenceCommands, excludeSegment) {
 export function pathCommandsFromString(d) {
   'worklet';
   const str = d || '';
-  const pattern = new RegExp(
-    /[MLCSTQAHVZmlcstqahv]|-?[\d.e+-]+/,
-    'g',
-  );
-  
+  const pattern = new RegExp(/[MLCSTQAHVZmlcstqahv]|-?[\d.e+-]+/, 'g');
+
   // split into valid tokens
   const tokens = str.match(pattern) || [];
   const commands = [];
@@ -476,7 +493,7 @@ export default function interpolatePath(a, b, excludeSegment) {
   const commandInterpolator = interpolatePathCommands(
     aCommands,
     bCommands,
-    excludeSegment,
+    excludeSegment
   );
 
   return function pathStringInterpolator(t) {

@@ -8,13 +8,6 @@ var globals = {
 
 const config = {
   input: 'index.js',
-  plugins: [
-    resolve(),
-    babel({
-      plugins: ['transform-object-assign'],
-      exclude: 'node_modules/**', // only transpile our source code
-    }),
-  ],
   external: Object.keys(globals),
   output: [
     // main UMD output
