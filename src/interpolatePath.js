@@ -161,10 +161,7 @@ function splitSegment(commandStart, commandEnd, segmentCount) {
 
     // general case - just copy the same point
   } else {
-    const copyCommand = () => {
-      'worklet';
-      assignObject({}, commandStart);
-    };
+    const copyCommand = assignObject({}, commandStart);
 
     // convert M to L
     if (copyCommand.type === 'M') {
