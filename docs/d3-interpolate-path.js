@@ -200,7 +200,7 @@ function assignObject(target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = arguments[i];
     for (var key in source) {
-      if (source.hasOwnProperty(key)) {
+      if (Object.hasOwn(source, key)) {
         target[key] = source[key];
       }
     }
@@ -320,10 +320,7 @@ function splitSegment(commandStart, commandEnd, segmentCount) {
 
     // general case - just copy the same point
   } else {
-    const copyCommand = () => {
-      'worklet';
-      assignObject({}, commandStart);
-    };
+    const copyCommand = assignObject({}, commandStart);
 
     // convert M to L
     if (copyCommand.type === 'M') {
