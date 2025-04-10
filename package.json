@@ -34,19 +34,19 @@
     "postpublish": "zip -j build/d3-interpolate-path.zip -- LICENSE README.md build/d3-interpolate-path.js build/d3-interpolate-path.min.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.0",
+    "@babel/core": "^7.26.10",
     "@babel/preset-env": "^7.14.1",
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-runtime": "^6.26.0",
-    "braces": ">=3.0.2",
     "eslint": "^9.15.0",
-    "eslint-config-prettier": "^8.3.0",
-    "minimist": ">=1.2.5",
-    "rollup": "^2.47.0",
+    "braces": ">=3.0.3",
+    "eslint-config-prettier": "^8.10.0",
+    "minimist": ">=1.2.8",
+    "rollup": "^3.29.5",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-node-resolve": "^5.0.1",
-    "tape": "^5.2.2",
-    "uglify-js": "^3.13.6"
+    "tape": "^5.8.1",
+    "uglify-js": "^3.19.3"
   },
   "dependencies": {}
 }
